@@ -1,3 +1,7 @@
+<!-- 
+ Name: Christian Sperry
+ Description: This program is designed as a trivia game utilizing localstorage, sessionstorage, jquery, the axios library and other week 14 concepts. 
+ -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,6 +34,66 @@
 
   <script>
 
+// in the function below, {data} just represents us grabbing the object the api returns
+
+// get questions and load local storage 
+const getQuestionsAndLoadLocalStorage = async () => {
+  let {data} = await axios.get('https://opentdb.com/api.php?amount=10&type=boolean');
+  console.log(data.results) // checking to make sure our data is being captured how it's supposed to
+  localStorage.setItem('trivia', JSON.stringify(data.results));// results is an object inside of the original object. Results is full of questions with answers. 
+}
+
+// grab questions from storage and display and set correct ansewr 
+const getQuestionFromStorage = async () => {
+  
+  // check and see if there are new questions left, if not grab new questions
+  if(!localStorage.getItem('trivia')) { // if Trivia is NOT IN LOCAL STORAGE 
+    await getQuestionsAndLoadLocalStorage();
+    // our if statement ensures that the trivia key exists 
+  }
+
+  // grab the questions and set correct answer and display
+  let questions = JSON.parse(localStorage.getItem('trivia'));
+  let {question, correct_answer} = questions.pop(); // grabbing an object, .pop destructures the object to take out the question and the correct answer. 
+
+  // reset local storage based on remaining questions
+
+  if(questions.length <= 0) {
+    localStorage.removeItem('trivia')
+  } else {
+    // restore local storage
+  localStorage.setItem('trivia', JSON.stringify(questions));
+  }
+  
+
+  // store the correct answer in session storage 
+  sessionStorage.setItem('correct answer', correct_answer);
+
+  // display the question on screen in jquery 
+  $('#question').html(question);
+}
+
+
+const checkAnswer = (e) => {
+  // check if button has correct text 
+  if (e.target.innerText === sessionStorage.getItem('correct answer')){
+    alert('Correct!') // if the inner text of the clicked button matches the correct answer that is currently being stored
+
+    getQuestionFromStorage(); // grab a new question if theye got the previous question right 
+  } else {
+    alert('Try Again!')
+  }
+}
+
+// add event listeners
+// make the true and false buttons work in jquery 
+
+$('#trueBtn').click(checkAnswer); // calling checkAnswer when a user clicks the true button 
+
+$('#falseBtn').click(checkAnswer); // calling checkAnswer when a user clicks the false button 
+
+// call getQuestionFromStorage when the page loads using jquery
+$('body').ready(getQuestionFromStorage)
   </script>
 </body>
 </html>
